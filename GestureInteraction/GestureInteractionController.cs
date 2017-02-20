@@ -40,11 +40,8 @@ public class GestureInteractionController : MonoBehaviour {
         Debug.Log(hands_.empty);
 
         // Check Current Event Types
-        currentEventType_ = m_EventModel.CheckCurrentEventType(currentEventType_, lastEventType_, hands_);
+        currentEventType_ = m_EventModel.UpdateCurrentEvent(currentEventType_, lastEventType_, hands_);
 
-        // Do event
-        m_EventModel.UpdateCurrentEvent(hands_);
-        
         // Change Frame
         lastEventType_ = currentEventType_;
 	}

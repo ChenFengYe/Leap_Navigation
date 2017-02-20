@@ -19,6 +19,7 @@ public class EventModel : MonoBehaviour {
     // Event
     public event Action<Hand, IFuncType> Action_Navigation_HitRay;        // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
     public event Action<Hand, IFuncType> Action_Navigation_Stroll;        // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
+    public event Action<Hand, IFuncType> Action_Navigation_Scale;         // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
 
     // constant
     private float GraspThreshold = 0.8f;                // for detecting this hand is making a fist or not
@@ -30,15 +31,15 @@ public class EventModel : MonoBehaviour {
         m_EventID = 0;
 	}
 
-    public void UpdateCurrentEvent(HandPair hands)
-    {
-        //
+    //public void UpdateCurrentEvent(HandPair hands)
+    //{
+    //    //
 
 
-        LastHands = hands;
-    }
+    //    LastHands = hands;
+    //}
 
-    public IEventType CheckCurrentEventType(IEventType CurrentEventType, IEventType LastEventType, HandPair hands)
+    public IEventType UpdateCurrentEvent(IEventType CurrentEventType, IEventType LastEventType, HandPair hands)
     {
         // Check hands are empty to decide fix or hold on all interaction
         if(!CheckHandsData(hands))
@@ -77,28 +78,20 @@ public class EventModel : MonoBehaviour {
                 }
             //-----------------------------------------------------------------------------------------
             // Navigation
-//从以下Debug------------------------------------------------------------------------------------------------------------
             case IEventType.Navigation_Scaling:
                 {
-                    // Do scaling
-
-                    //------//
-
                     // Check scale event is over
-                    if (!CheckHandsAllFist(hands) && !CheckTwoHandsRelaxed(hands))
+                    if (CheckHandsAllFist(hands))
 	                {
-	                	 return IEventType.Wait_ScaletoNoAction;
-	                }
-                    else if (CheckHandsAllFist(hands))
-	                {
-	                	 return IEventType.Navigation_Scaling;
+                        if (LastEventType != IEventType.Navigation_Scaling)
+	                    	Action_Navigation_Scale(han, IFuncType.Init);
+                        else
+	                    	Action_Navigation_Scale(han, IFuncType.Update);
+	                	return CurrentEventType;
 	                }
                     else  // CheckTwoHandsRelaxed(hands)
 	                {
-                        // confirm Scale result
-
-                        //------//
-
+                        Action_Navigation_Scale(han, IFuncType.Close);
                         return IEventType.NoAction;
 	                }
                     break;
@@ -121,6 +114,8 @@ public class EventModel : MonoBehaviour {
                     //    Navigation_HitRay(hands.R, IFuncType.Update);
                     //    Navigation_HitRay(hands.R, IFuncType.Close);
                     //}
+                    Debug.Log("Error: Navigation_RayHit Event is not achieved! ");
+                    return IEventType.CancelAction;
                     break;
                 }
             case IEventType.Navigation_Stroll:
@@ -144,27 +139,14 @@ public class EventModel : MonoBehaviour {
                 }
             default:
                 {
-
+                    Debug.Log("Error: This Event is not achieved! ");
+                    return IEventType.CancelAction;
                     break;
                 }
         }
-        
-        // check Left hand is fistting
-        LastEventType = 
-        return;
-
-
-
-        //// 此处触发事件
-        //if (m_RayHit == false)
-        //{
-        //    Navigation_HitRay_Init(hands.hand_R, IFuncType.Init);
-        //    //HitRay_Init(hands.hand_L);
-        //    m_RayHit = true;
-        //}
-        //
-        ////HitRay_Update(hands.hand_L);
-        //Navigation_HitRay_Update(hands.hand_R);
+                // Change Frame
+        Debug.Log("Error: Huge Bug 2017.2.20!!!!");
+        return IEventType.CancelAction;
     }
 
     public IEventType CheckWaitEvent(IEventType CurrentEventType, HandPair hands)
@@ -214,10 +196,16 @@ public class EventModel : MonoBehaviour {
                     }
                     break;
                 }
-            case IEventType.Wait_ScaletoNoAction:
-                {
-                    break;
-                }
+            //case IEventType.Wait_ScaletoNoAction:
+            //    {
+            //        if (CheckTwoHandsRelaxed)
+            //        {
+	                	 
+            //        }
+            //        return 
+            //        Wait_ScaletoNoAction
+            //        break;
+            //    }
             default:
                 {
                     Debug.Log("Error: No Wait Event in WaitEvent Detect function!");

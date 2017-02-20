@@ -12,7 +12,7 @@ namespace GestureInteraction
 
         Wait_CancelOrScale,             // 注意： 当再次加入Wait Event 时，去 IsWaitEvent 添加该 Wait Event
         Wait_NavigationOrSelectionOrCancel,
-        Wait_ScaletoNoAction,
+        //Wait_ScaletoNoAction,
 
         CancelAction,                   // cancel all current action to Init all Interaction
 
