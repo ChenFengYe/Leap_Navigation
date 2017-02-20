@@ -7,10 +7,13 @@ using Leap.Unity;
 public class InteractionView : MonoBehaviour {
     
     public EventModel m_EventModel;
-
+	// HitRay interaction operations
     GameObject m_pointer;
     Pointer m_pointer_comp;
 
+	// CameraTransition interaction operations
+	GameObject m_camera;
+	float pre_speed;
 
 	// Use this for initialization
 	void Start () {
@@ -28,9 +31,8 @@ public class InteractionView : MonoBehaviour {
 	}
 
 
-
-    /// HitRay interaction operations
-    void initPointer(Hand hand, IFuncType )
+	//------------------------HitRay interaction operations---------------------------
+    void initPointer(Hand hand, IFuncType type_in)
     {
         m_pointer = new GameObject("MyPointer");
         m_pointer.transform.SetParent(transform);
@@ -64,7 +66,37 @@ public class InteractionView : MonoBehaviour {
         m_pointer.transform.position = GestureMethods.toVec3(hand.Fingers[1].bones[3].NextJoint);
         m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation); 
     }
-    /// HitRay interaction operations
+	//------------------------HitRay interaction operations---------------------------
+
+	//--------------------CameraTransition interaction operations---------------------
+	void CameraTransition(float speed_in, Vector3 trans_in, IFuncType type_in){
+		switch (IFunctionType) {
+		case Init:
+			m_camera = GameObject.Find ("Camera (eye)");
+			pre_speed = 0;
+			break;
+		case Update:
+			if (m_camera != null) {
+				// never change position in height
+				trans_in.y = 0;
+				// calculate mean changing speed
+				int speed_cap_num = 20;
+				float mean_s = (speed_in - pre_speed) / speed_cap_num;
+				// uniform acceleration on speed
+				for (int i = 0; i < speed_cap_num; i++) {
+					m_camera.transform.position +=(pre_speed + i*mean_s) * trans_in;
+				}
+				pre_speed = trans_in;
+			}
+			break;
+		case Close:
+			m_camera = null;
+			break;
+		default:
+			break;
+		}
+	}
+	//--------------------CameraTransition interaction operations---------------------
 
     //---------------------------------------------------
     //---------------------------------------------------
