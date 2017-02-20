@@ -28,7 +28,18 @@ public class EventModel : MonoBehaviour {
         m_EventID = 0;
         LastEventType = IEventType.NoAction;
 	}
-	
+
+	public void WaitToCheck(){
+		System.Threading.Timer timer = new System.Threading.Timer(  
+			new System.Threading.TimerCallback(InvokeCheckEvent), null,  
+			0, 1000);//1S定时器  
+	}
+
+	void InvokeCheckEvent(){
+		// now we can check current hands after 1s
+	}
+
+
     public IEventType CheckCurrentEventType(HandPair hands)
     {
         // Check hands are empty to decide fix or hold on all interaction
