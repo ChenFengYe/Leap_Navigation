@@ -10,17 +10,25 @@ namespace GestureInteraction
         // Null
         NoAction,                       // no action
 
-        WaitForCancelOrScale,
+        Wait_CancelOrScale,
+        Wait_NavigationOrSelection,
+
         CancelAction,                   // cancel all current action to Init all Interaction
+
+        // 
+
 
         // scale
         Scaling,                        // may scale scence or object
 
         // Navigation
-        StrollingWithFingerDirection,
+        Navigation_RayHit,
+        Navigation_Stroll,
 
         // Selection
-        
+        Selection_Mutiple,
+        Selection_Single,
+
         // Manipulation
     }
 
