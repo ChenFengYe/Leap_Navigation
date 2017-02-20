@@ -35,7 +35,7 @@ public class EventModel : MonoBehaviour {
 			0, 1000);//1S定时器  
 	}
 
-	void InvokeCheckEvent(){
+	void InvokeCheckEvent(object a ){
 		// now we can check current hands after 1s
 	}
 
