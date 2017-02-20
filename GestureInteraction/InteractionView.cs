@@ -32,6 +32,40 @@ public class InteractionView : MonoBehaviour {
 
 
 	//------------------------HitRay interaction operations---------------------------
+
+	// change it into function-seleciton
+	void PointerHit(Hand hand, IFuncType type_in){
+		switch (type_in) {
+		case Init:
+			m_pointer.SetActive(true);
+			m_pointer = new GameObject("MyPointer");
+			m_pointer.transform.SetParent(transform);
+			m_pointer.transform.localPosition = Vector3.zero;
+			m_pointer.transform.localRotation = Quaternion.identity;
+			// initialize the pointer component
+			m_pointer_comp = m_pointer.AddComponent<Pointer>();
+			UnityEngine.Object obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrows.mat");
+			Material goodmat = obj as Material;
+			m_pointer_comp.goodTeleMat = goodmat;
+			obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrowsBad.mat");
+			Material badmat = obj as Material;
+			m_pointer_comp.badTeleMat = badmat;
+			obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/prebs/TeleportHighlightExample.prefab");
+			GameObject telhigh = obj as GameObject;
+			m_pointer_comp.teleportHighlight = telhigh;
+			break;
+		case Update:
+			m_pointer.transform.position = GestureMethods.toVec3(hand.Fingers[1].bones[3].NextJoint);
+			m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation); 
+			break;
+		case Close:
+			m_pointer.SetActive(false);
+			break;
+		default:
+			break;
+		}
+	}
+
     void initPointer(Hand hand, IFuncType type_in)
     {
         m_pointer = new GameObject("MyPointer");
@@ -70,7 +104,7 @@ public class InteractionView : MonoBehaviour {
 
 	//--------------------CameraTransition interaction operations---------------------
 	void CameraTransition(float speed_in, Vector3 trans_in, IFuncType type_in){
-		switch (IFunctionType) {
+		switch (type_in) {
 		case Init:
 			m_camera = GameObject.Find ("Camera (eye)");
 			pre_speed = 0;
