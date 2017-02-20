@@ -5,30 +5,43 @@ using Leap;
 
 namespace GestureInteraction
 {
-    public enum m_EventType
+    public enum IEventType
     {
         // Null
-        NoAction = 0,
+        NoAction,                       // no action
+
+        WaitForCancelOrScale,
+        CancelAction,                   // cancel all current action to Init all Interaction
+
+        // scale
+        Scaling,                        // may scale scence or object
 
         // Navigation
-        StrollingWithFingerDirection = 1,
+        StrollingWithFingerDirection,
 
         // Selection
-
+        
         // Manipulation
+    }
+
+    public enum IFuncType
+    {
+        Init = 0,
+        Update = 1,
+        Close = 2,
     }
 
     public struct m_Event
     {
         Int64 ID;
-        m_EventType eventType;
+        IEventType eventType;
 
     }
 
-    public struct m_Hands
+    public struct HandPair
     {
-        public Hand hand_L;
-        public Hand hand_R;
+        public Hand L;
+        public Hand R;
         public bool empty;
     }
 }

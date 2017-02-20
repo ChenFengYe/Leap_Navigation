@@ -14,7 +14,7 @@ public class InteractionView : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        m_EventModel.Navigation_HitRay_Init += initPointer;
+        m_EventModel.Navigation_HitRay += initPointer;
         m_EventModel.Navigation_HitRay_Update += updatePointer;
         //m_EventModel.Navigation_HitRay_Close += initPointer;
         // initialize the HitRay: initPointer();
@@ -30,7 +30,7 @@ public class InteractionView : MonoBehaviour {
 
 
     /// HitRay interaction operations
-    void initPointer(Hand hand)
+    void initPointer(Hand hand, IFuncType )
     {
         m_pointer = new GameObject("MyPointer");
         m_pointer.transform.SetParent(transform);
