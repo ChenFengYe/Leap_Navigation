@@ -44,20 +44,23 @@ public class EventModel : MonoBehaviour {
         {
             case IEventType.NoAction:
                 {
+                    // 啥也不干
                     if (CheckTwoHandsRelaxed(hands))
                         return IEventType.NoAction;
 
                     if (CheckHandFist(hands.L))
-                        return IEventType.
+                        return CheckOnlyIndexPointting(hands.R) ? 
+                            IEventType.Selection_Mutiple            // 选择 多选
+                            : IEventType.Navigation_Stroll;         // 漫游
                     break;
                 }
 
-            case IEventType.WaitForCancelOrScale:
+            case IEventType.Wait_CancelOrScale:
                 {
                     // 双手握手
                     if (CheckHandsAllFist(hands))
                         // 手相向移动了没？ scale : wait
-                        return CheckHandsMoveCross(hands) ? IEventType.Scaling : IEventType.WaitForCancelOrScale;
+                        return CheckHandsMoveCross(hands) ? IEventType.Scaling : IEventType.Wait_CancelOrScale;
 
                     // 双手张开
                     else if (CheckTwoHandsRelaxed(hands))
@@ -65,7 +68,7 @@ public class EventModel : MonoBehaviour {
 
                     // 一手张开一手握拳
                     else
-                        return IEventType.WaitForCancelOrScale;
+                        return IEventType.Wait_CancelOrScale;
                     break;
                 }
 
@@ -82,7 +85,7 @@ public class EventModel : MonoBehaviour {
 
                     break;
                 }
-            case IEventType.StrollingWithFingerDirection:
+            case IEventType.Navigation_RayHit:
                 {
 
                     break;
@@ -159,6 +162,19 @@ public class EventModel : MonoBehaviour {
         return LastPalmDistance - PalmDistance > HandsCoressThreshold ? true : false;
     }
 
+    // 检查单指指出
+    private bool CheckOnlyIndexPointting(Hand hand)
+    {
+        bool OnlyIndexPointing = false;
+        for (int i = 0; i < hand.Fingers.Count; i++)
+		{
+            if (i == 1) // index finger
+                OnlyIndexPointing = hand.Fingers[i].IsExtended ? true : false;
+            else
+                OnlyIndexPointing = hand.Fingers[i].IsExtended ? false : true;
+		}
+        return OnlyIndexPointing;
+    }
 
     //--------------------------------------------------------------------------------------------------
     public void UpdateEvent()
@@ -170,6 +186,27 @@ public class EventModel : MonoBehaviour {
     {
         LastEventType = eventType;
     }
+
+    //public bool checkFist(Hand hand){
+    //   var sum = 0;
+    //   for(var i=0;i<hand.Fingers.length;i++){
+    //      var finger = hand.Fingers[i];
+    //      var meta = finger.bones[0].direction();
+    //      var proxi = finger.bones[1].direction();
+    //      var inter = finger.bones[2].direction();
+    //      var dMetaProxi = Leap.vec3.dot(meta,proxi);
+    //      var dProxiInter = Leap.vec3.dot(proxi,inter);
+    //      sum += dMetaProxi;
+    //      sum += dProxiInter
+    //   }
+    //   sum = sum/10;
+    
+    //   if(sum<=minValue && getExtendedFingers(hand)==0){
+    //       return true;
+    //   }else{
+    //       return false;
+    //   }
+    //}
 
     //protected void HitRay_Init(Hand hand)
     //{
