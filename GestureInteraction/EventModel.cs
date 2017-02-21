@@ -87,26 +87,25 @@ public class EventModel : MonoBehaviour
                 break;
 
             case IEventType.Navigation_RayHit:
-                //if (LastEventType != IEventType.Navigation_RayHit)
-                //{
-                //    //if (LastEventType != IEventType.Wait... || LastEventType != IEventType.NoAction)
-                //    //{
-
-                //    //}
-
-                //    Navigation_HitRay(hands.R, IFuncType.Init);
-                //}
-                //else
-                //{
-
-                //    Navigation_HitRay(hands.R, IFuncType.Update);
-                //    Navigation_HitRay(hands.R, IFuncType.Close);
-                //}
-                Debug.Log("Error: Navigation_RayHit Event is not achieved! ");
-                return IEventType.CancelAction;
+                if (LastEventType != CurrentEventType)
+                {
+                    Action_Navigation_HitRay(hands.R, IFuncType.Init);
+                    return IEventType.Navigation_RayHit;
+                }
+                else if (CheckHandFist(hands.L))
+                {
+                    Action_Navigation_HitRay(hands.R, IFuncType.Update);
+                    return IEventType.Navigation_RayHit;
+                }
+                else
+                {
+                    Action_Navigation_HitRay(hands.R, IFuncType.Close);
+                    return IEventType.NoAction;
+                }
                 break;
+
             case IEventType.Navigation_Stroll:
-                if (LastEventType != IEventType.Navigation_Stroll)
+                if (LastEventType != CurrentEventType)
                 {
                     Action_Navigation_Stroll(
                         hands.L.GrabStrength,
@@ -129,6 +128,12 @@ public class EventModel : MonoBehaviour
                         GestureMethods.GetFingersDirection(hands.R),
                         IFuncType.Close);                               // Close
                     return IEventType.NoAction;
+                }
+                break;
+            case IEventType.Selection_Mutiple:
+                if (LastEventType != CurrentEventType)
+                {
+                    
                 }
                 break;
             default:
@@ -172,7 +177,8 @@ public class EventModel : MonoBehaviour
                 break;
             case IEventType.Wait_NavigationOrSelectionOrCancel:
                 if (CheckOnlyIndexPointting(hands.R))
-                    return IEventType.Selection_Mutiple;
+                     return IEventType.Navigation_RayHit;
+                     //return IEventType.Selection_Mutiple;
                 else
                 {
                     // check Index is pointer or not
