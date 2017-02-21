@@ -17,8 +17,7 @@ public class InteractionView : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        m_EventModel.Navigation_HitRay += initPointer;
-        m_EventModel.Navigation_HitRay_Update += updatePointer;
+        m_EventModel.Action_Navigation_HitRay += initPointer;
         //m_EventModel.Navigation_HitRay_Close += initPointer;
         // initialize the HitRay: initPointer();
 	}

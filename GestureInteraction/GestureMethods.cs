@@ -10,17 +10,25 @@ namespace GestureInteraction
         // Null
         NoAction,                       // no action
 
-        WaitForCancelOrScale,
+        Wait_CancelOrScale,             // 注意： 当再次加入Wait Event 时，去 IsWaitEvent 添加该 Wait Event
+        Wait_NavigationOrSelectionOrCancel,
+        //Wait_ScaletoNoAction,
+
         CancelAction,                   // cancel all current action to Init all Interaction
 
-        // scale
-        Scaling,                        // may scale scence or object
+        // 
+
+
 
         // Navigation
-        StrollingWithFingerDirection,
+        Navigation_Stroll,
+        Navigation_RayHit,
+        Navigation_Scaling,                        // may scale scence or object
 
         // Selection
-        
+        Selection_Mutiple,
+        Selection_Single,
+
         // Manipulation
     }
 

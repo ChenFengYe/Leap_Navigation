@@ -8,15 +8,18 @@ using Leap;
 
 public class EventModel : MonoBehaviour {
 
-    private List<m_Event>   m_EventList;
-    private Int64           m_EventID;
-    private bool            m_RayHit = false;
+    public GestureInteractionController m_GIController;
+    private List<m_Event>               m_EventList;
+    private Int64                       m_EventID;
+    private bool                        m_RayHit = false;
 
-    private HandPair        LastHands;
-    private IEventType      LastEventType;
+    private HandPair                    LastHands;
+
 
     // Event
-    public event Action<Hand, IFuncType> Navigation_HitRay;        // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
+    public event Action<Hand, IFuncType> Action_Navigation_HitRay;        // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
+    public event Action<Hand, IFuncType> Action_Navigation_Stroll;        // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
+    public event Action<Hand, IFuncType> Action_Navigation_Scale;         // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
 
     // constant
     private float GraspThreshold = 0.8f;                // for detecting this hand is making a fist or not
@@ -26,49 +29,149 @@ public class EventModel : MonoBehaviour {
 	void Start () {
         m_EventList = new List<m_Event>();
         m_EventID = 0;
-        LastEventType = IEventType.NoAction;
-	}
-
-	public void WaitToCheck(){
-		System.Threading.Timer timer = new System.Threading.Timer(  
-			new System.Threading.TimerCallback(InvokeCheckEvent), null,  
-			0, 1000);//1S定时器  
-	}
-
-	void InvokeCheckEvent(object a ){
-		// now we can check current hands after 1s
 	}
 
 
     public IEventType CheckCurrentEventType(HandPair hands)
+
+    //public void UpdateCurrentEvent(HandPair hands)
+    //{
+    //    //
+
+
+    //    LastHands = hands;
+    //}
+
+    public IEventType UpdateCurrentEvent(IEventType CurrentEventType, IEventType LastEventType, HandPair hands)
     {
         // Check hands are empty to decide fix or hold on all interaction
-        if (hands.empty)
+        if(!CheckHandsData(hands))
+            return IEventType.CancelAction;
+
+        // If is wait event ,just wait.
+        if (IsWaitEvent(CurrentEventType))
         {
-            if (!LastHands.empty)
-                FixCurrentHand(hands);
-            else
-                return IEventType.CancelAction;
+            return CurrentEventType;
         }
 
-        switch (LastEventType)
+        switch (CurrentEventType)
         {
             case IEventType.NoAction:
                 {
+                    // 啥也不干
                     if (CheckTwoHandsRelaxed(hands))
                         return IEventType.NoAction;
 
                     if (CheckHandFist(hands.L))
-                        return IEventType.
+                    {
+                        m_GIController.WaitToCheck();
+                        return IEventType.Wait_NavigationOrSelectionOrCancel;
+                    }
+                    break;
+                }
+            case IEventType.CancelAction:
+                {
+                    // Do cancel Event
+                    
+                    //------//
+
+                    // then 
+                    return IEventType.NoAction;
+                    break;
+                }
+            //-----------------------------------------------------------------------------------------
+            // Navigation
+            case IEventType.Navigation_Scaling:
+                {
+                    // Check scale event is over
+                    if (CheckHandsAllFist(hands))
+	                {
+                        if (LastEventType != IEventType.Navigation_Scaling)
+	                    	Action_Navigation_Scale(han, IFuncType.Init);
+                        else
+	                    	Action_Navigation_Scale(han, IFuncType.Update);
+	                	return CurrentEventType;
+	                }
+                    else  // CheckTwoHandsRelaxed(hands)
+	                {
+                        Action_Navigation_Scale(han, IFuncType.Close);
+                        return IEventType.NoAction;
+	                }
                     break;
                 }
 
-            case IEventType.WaitForCancelOrScale:
+            case IEventType.Navigation_RayHit:
+                {
+                    //if (LastEventType != IEventType.Navigation_RayHit)
+                    //{
+                    //    //if (LastEventType != IEventType.Wait... || LastEventType != IEventType.NoAction)
+                    //    //{
+	                    	 
+                    //    //}
+
+                    //    Navigation_HitRay(hands.R, IFuncType.Init);
+                    //}
+                    //else
+                    //{
+
+                    //    Navigation_HitRay(hands.R, IFuncType.Update);
+                    //    Navigation_HitRay(hands.R, IFuncType.Close);
+                    //}
+                    Debug.Log("Error: Navigation_RayHit Event is not achieved! ");
+                    return IEventType.CancelAction;
+                    break;
+                }
+            case IEventType.Navigation_Stroll:
+                {
+                    if (LastEventType != IEventType.Navigation_Stroll)
+                    {
+                        Action_Navigation_Stroll(han, IFuncType.Init);
+                        return CurrentEventType;                            // Continue
+                    }
+                    else if (CheckHandFist(hands.L))
+                    {
+                        Action_Navigation_Stroll(han, IFuncType.Update);
+                        return CurrentEventType;                            // Continue
+                    }
+                    else
+                    {
+                        Action_Navigation_Stroll(han, IFuncType.Close);     // Close
+                        return IEventType.NoAction;
+                    }
+                    break;
+                }
+            default:
+                {
+                    Debug.Log("Error: This Event is not achieved! ");
+                    return IEventType.CancelAction;
+                    break;
+                }
+        }
+                // Change Frame
+        Debug.Log("Error: Huge Bug 2017.2.20!!!!");
+        return IEventType.CancelAction;
+    }
+
+    public IEventType CheckWaitEvent(IEventType CurrentEventType, HandPair hands)
+    {
+        if (!CheckHandsData(hands))
+            return IEventType.CancelAction;
+
+        if (!IsWaitEvent(CurrentEventType))
+        {
+            Debug.Log("Error: Current Event is not a Wait Event!");
+        }
+
+        switch (CurrentEventType)
+        {
+            case IEventType.Wait_CancelOrScale:
                 {
                     // 双手握手
                     if (CheckHandsAllFist(hands))
                         // 手相向移动了没？ scale : wait
-                        return CheckHandsMoveCross(hands) ? IEventType.Scaling : IEventType.WaitForCancelOrScale;
+                        return CheckHandsMoveCross(hands) ? 
+                            IEventType.Navigation_Scaling 
+                            : IEventType.Wait_CancelOrScale;
 
                     // 双手张开
                     else if (CheckTwoHandsRelaxed(hands))
@@ -76,57 +179,43 @@ public class EventModel : MonoBehaviour {
 
                     // 一手张开一手握拳
                     else
-                        return IEventType.WaitForCancelOrScale;
+                        return IEventType.Wait_CancelOrScale;
+
                     break;
                 }
-
-            case IEventType.CancelAction:
+            case IEventType.Wait_NavigationOrSelectionOrCancel:
                 {
-                    if ()
-	                {
+                    if (CheckOnlyIndexPointting(hands.R))
+                    {
+                        return IEventType.Selection_Mutiple;
+                    }
+                    else
+                    {
+                        // check Index is pointer or not
+                        if (CheckHandFist(hands.R))
+                            return IEventType.Wait_CancelOrScale;
+                        else
+                            return IEventType.Navigation_Stroll;
+                    }
+                    break;
+                }
+            //case IEventType.Wait_ScaletoNoAction:
+            //    {
+            //        if (CheckTwoHandsRelaxed)
+            //        {
 	                	 
-	                }
-                    break;
-                }
-            case IEventType.Scaling:
-                {
-
-                    break;
-                }
-            case IEventType.StrollingWithFingerDirection:
-                {
-
-                    break;
-                }
+            //        }
+            //        return 
+            //        Wait_ScaletoNoAction
+            //        break;
+            //    }
             default:
                 {
-
+                    Debug.Log("Error: No Wait Event in WaitEvent Detect function!");
+                    return IEventType.CancelAction;
                     break;
                 }
         }
-        // Navigation
-        if (true)
-        {
-            
-        }
-        
-        // check Left hand is fistting
-        LastEventType = 
-
-        return;
-
-
-
-        //// 此处触发事件
-        //if (m_RayHit == false)
-        //{
-        //    Navigation_HitRay_Init(hands.hand_R, IFuncType.Init);
-        //    //HitRay_Init(hands.hand_L);
-        //    m_RayHit = true;
-        //}
-        //
-        ////HitRay_Update(hands.hand_L);
-        //Navigation_HitRay_Update(hands.hand_R);
     }
 
 	// if there occurs that emtpy hand while last time have hands, Fix hands with this function
@@ -137,6 +226,24 @@ public class EventModel : MonoBehaviour {
         hands.R.CopyFrom(LastHands.R);
     }
 
+    //--------------------------------------------------------------------------------------------------
+    // Check Data
+    private bool CheckHandsData(HandPair hands)
+    {
+        // Check hands are empty to decide fix or hold on all interaction
+        if (hands.empty)
+        {
+            if (!LastHands.empty)
+            {
+                FixCurrentHand(hands);
+                return true;
+            }
+            else
+                return false;
+        }
+        else
+            return true;
+    }
     //--------------------------------------------------------------------------------------------------
     // 检查状态的函数
 
@@ -149,7 +256,15 @@ public class EventModel : MonoBehaviour {
     // 手握拳
     private bool CheckHandFist(Hand hand)
     {
-        return hand.GrabStrength < GraspThreshold ?true : false;
+        if (hand.GrabStrength < GraspThreshold)
+        {
+            for (int i=0;  i < hand.Fingers.Count; i++)
+                if (hand.Fingers[i].IsExtended)
+                    return false; 
+            return true;
+        }
+        else
+            return false;
     }
 
     // 双手握拳
@@ -170,17 +285,58 @@ public class EventModel : MonoBehaviour {
         return LastPalmDistance - PalmDistance > HandsCoressThreshold ? true : false;
     }
 
+    // 检查单指指出
+    private bool CheckOnlyIndexPointting(Hand hand)
+    {
+        bool OnlyIndexPointing = false;
+        for (int i = 0; i < hand.Fingers.Count; i++)
+		{
+            if (i == 1) // index finger
+            {
+                OnlyIndexPointing = hand.Fingers[i].IsExtended ? true : false;
+                if (!OnlyIndexPointing) break;
+            }
+            else
+            {
+                OnlyIndexPointing = hand.Fingers[i].IsExtended ? false : true;
+                if (!OnlyIndexPointing) break;
+            }
+		}
+        return OnlyIndexPointing;
+    }
 
+    // Check Is Wait Event
+    public bool IsWaitEvent(IEventType eT)
+    {
+        if (eT == IEventType.Wait_NavigationOrSelectionOrCancel ||
+            eT == IEventType.Wait_CancelOrScale ||
+            eT == IEventType.Wait_ScaletoNoAction)
+            return true;
+        else
+            return false;
+    }
     //--------------------------------------------------------------------------------------------------
-    public void UpdateEvent()
-    {
-    
-    }
 
-    public void UpdateLastEventType(IEventType eventType)
-    {
-        LastEventType = eventType;
-    }
+    //public bool checkFist(Hand hand){
+    //   var sum = 0;
+    //   for(var i=0;i<hand.Fingers.length;i++){
+    //      var finger = hand.Fingers[i];
+    //      var meta = finger.bones[0].direction();
+    //      var proxi = finger.bones[1].direction();
+    //      var inter = finger.bones[2].direction();
+    //      var dMetaProxi = Leap.vec3.dot(meta,proxi);
+    //      var dProxiInter = Leap.vec3.dot(proxi,inter);
+    //      sum += dMetaProxi;
+    //      sum += dProxiInter
+    //   }
+    //   sum = sum/10;
+    
+    //   if(sum<=minValue && getExtendedFingers(hand)==0){
+    //       return true;
+    //   }else{
+    //       return false;
+    //   }
+    //}
 
     //protected void HitRay_Init(Hand hand)
     //{

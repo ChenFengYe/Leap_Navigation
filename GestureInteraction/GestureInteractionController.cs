@@ -15,7 +15,8 @@ public class GestureInteractionController : MonoBehaviour {
     private Frame                    frame_;
     public  HandPair                  hands_;
 
-    private IEventType              cureentEventType_;
+    private IEventType              currentEventType_;
+    private IEventType              lastEventType_;
 
 	// Use this for initialization
 	void Start () {
@@ -25,6 +26,10 @@ public class GestureInteractionController : MonoBehaviour {
         hands_.L = new Hand();
         hands_.R = new Hand();
         hands_.empty = true;
+        
+        // Init EventType
+        lastEventType_ = IEventType.NoAction;
+        currentEventType_ = IEventType.NoAction;
 	}
 	
 	// Update is called once per frame
@@ -35,8 +40,10 @@ public class GestureInteractionController : MonoBehaviour {
         Debug.Log(hands_.empty);
 
         // Check Current Event Types
-        cureentEventType_ = m_EventModel.CheckCurrentEventType(hands_);
-        m_EventModel.UpdateLastEventType(cureentEventType_);
+        currentEventType_ = m_EventModel.UpdateCurrentEvent(currentEventType_, lastEventType_, hands_);
+
+        // Change Frame
+        lastEventType_ = currentEventType_;
 	}
 
     private void UpdateAndMergeFrame()
@@ -90,5 +97,25 @@ public class GestureInteractionController : MonoBehaviour {
         hands_.L.CopyFrom(emptyHand);
         hands_.R.CopyFrom(emptyHand);
         hands_.empty = true;
+    }
+
+    void InvokeCheckWaitEvent(object a)
+    {
+        IEventType eT = m_EventModel.CheckWaitEvent(currentEventType_, hands_);
+
+        // If it still is a wait Event, Keep waitting
+        if (m_EventModel.IsWaitEvent(eT))
+        {
+            WaitToCheck();
+            lastEventType_ = eT;
+        }
+
+        currentEventType_ = eT;
+    }
+    public void WaitToCheck()
+    {
+        System.Threading.Timer timer = new System.Threading.Timer(
+            new System.Threading.TimerCallback(InvokeCheckWaitEvent), null,
+            0, 1000);//1S定时器  
     }
 }
