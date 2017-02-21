@@ -10,17 +10,18 @@ public class EventModel : MonoBehaviour
 {
 
     public GestureInteractionController m_GIController;
-    private List<m_Event> m_EventList;
-    private Int64 m_EventID;
-    private bool m_RayHit = false;
+    public bool                         m_OpenFixeFrameData = false;
+    private List<m_Event>               m_EventList;
+    private Int64                       m_EventID;
+    private bool                        m_RayHit = false;
 
-    private HandPair LastHands;
+    private HandPair                    LastHands;
 
 
     // Event
-    public event Action<Hand, IFuncType> Action_Navigation_HitRay;        // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
-    public event Action<HandPair, IFuncType> Action_Navigation_Scale;         //
-    public event Action<float, Vector3, IFuncType> Action_Navigation_Stroll;        // Speed direction 
+    public event Action<Hand, IFuncType> Action_Navigation_HitRay;              // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
+    public event Action<HandPair, IFuncType> Action_Navigation_Scale;           //
+    public event Action<float, Vector3, IFuncType> Action_Navigation_Stroll;    // Speed direction 
 
     // constant
     private float GraspThreshold = 0.8f;                // for detecting this hand is making a fist or not
@@ -37,7 +38,7 @@ public class EventModel : MonoBehaviour
     {
         // Check hands are empty to decide fix or hold on all interaction
         if (!CheckHandsData(hands))
-            return IEventType.CancelAction;
+            return IEventType.NoAction;
 
         // If is wait event ,just wait.
         if (IsWaitEvent(CurrentEventType))
@@ -213,10 +214,18 @@ public class EventModel : MonoBehaviour
         // Check hands are empty to decide fix or hold on all interaction
         if (hands.empty)
         {
-            if (!LastHands.empty)
+            if (m_OpenFixeFrameData)
             {
-                FixCurrentHand(hands);
-                return true;
+                //---------------------------
+                // fix current hand
+                if (!LastHands.empty)
+                {
+                    FixCurrentHand(hands);
+                    return true;
+                }
+                else
+                    return false;
+                //---------------------------
             }
             else
                 return false;
@@ -228,7 +237,7 @@ public class EventModel : MonoBehaviour
     // 检查状态的函数
     private bool CheckHandFist(Hand hand)
     {
-        if (hand.GrabStrength < GraspThreshold)
+        if (hand.GrabStrength > GraspThreshold)
         {
             for (int i = 0; i < hand.Fingers.Count; i++)
                 if (hand.Fingers[i].IsExtended)

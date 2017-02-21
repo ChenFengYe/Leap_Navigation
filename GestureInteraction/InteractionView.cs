@@ -75,7 +75,7 @@ public class InteractionView : MonoBehaviour {
 	void CameraTransition(float speed_in, Vector3 trans_in, IFuncType type_in){
 		switch (type_in) {
 		case IFuncType.Init:
-			m_camera = GameObject.Find ("Camera (eye)");
+			m_camera = GameObject.Find ("FPSController_Standard");
 			pre_speed = 0;
 			break;
         case IFuncType.Update:
@@ -83,6 +83,7 @@ public class InteractionView : MonoBehaviour {
 				// never change position in height
 				trans_in.y = 0;
 				// calculate mean changing speed
+                speed_in /= 1000;
 				int speed_cap_num = 20;
 				float mean_s = (speed_in - pre_speed) / speed_cap_num;
 				// uniform acceleration on speed
