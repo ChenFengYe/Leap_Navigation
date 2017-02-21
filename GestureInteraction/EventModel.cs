@@ -31,6 +31,9 @@ public class EventModel : MonoBehaviour {
         m_EventID = 0;
 	}
 
+
+    public IEventType CheckCurrentEventType(HandPair hands)
+
     //public void UpdateCurrentEvent(HandPair hands)
     //{
     //    //
