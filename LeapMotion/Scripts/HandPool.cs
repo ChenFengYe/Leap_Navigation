@@ -22,8 +22,6 @@ namespace Leap.Unity {
     private Transform ModelsParent;
     [SerializeField]
     public List<ModelGroup> ModelPool;
-    [SerializeField]
-    public SteamVR_ControllerManager VR_ControllerManager;
 
     private List<HandProxy> activeHandReps = new List<HandProxy>();
     private Dictionary<IHandModel, ModelGroup> modelGroupMapping = new Dictionary<IHandModel, ModelGroup>();

@@ -33,8 +33,8 @@ public class RemoteFrameServer : MonoBehaviour
     void Update()
     {
         RemoteFrame = GetRemoteFrame();
-        if (IsDataInQuaue == true)
-            Debug.Log("Remote Hands Numbers: " + RemoteFrame.Hands.Count);
+        //if (IsDataInQuaue == true)
+        //    Debug.Log("Remote Hands Numbers: " + RemoteFrame.Hands.Count);
 
         //timer.Reset();
         //timer.Start();

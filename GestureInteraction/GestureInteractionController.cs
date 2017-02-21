@@ -18,6 +18,7 @@ public class GestureInteractionController : MonoBehaviour {
     private IEventType              currentEventType_;
     private IEventType              lastEventType_;
 
+    private System.Threading.Timer m_timer;
 	// Use this for initialization
 	void Start () {
         
@@ -39,6 +40,7 @@ public class GestureInteractionController : MonoBehaviour {
         UpdateAndMergeFrame();
         Debug.Log(hands_.empty);
 
+        Debug.Log(currentEventType_);
         // Check Current Event Types
         currentEventType_ = m_EventModel.UpdateCurrentEvent(currentEventType_, lastEventType_, hands_);
 
@@ -83,7 +85,7 @@ public class GestureInteractionController : MonoBehaviour {
                 break;
             }
             // Check If Remote Server has no left hand
-            if (i == m_LocalHandServer.CurrentFixedFrame.Hands.Count - 1)
+            if (i == m_RemoteHandServer.RemoteFrame.Hands.Count - 1)
             {
                 ClearHandsInFrame();
                 return;
@@ -101,6 +103,8 @@ public class GestureInteractionController : MonoBehaviour {
 
     void InvokeCheckWaitEvent(object a)
     {
+        m_timer.Dispose();// stop waiting and distroy the timer.
+
         IEventType eT = m_EventModel.CheckWaitEvent(currentEventType_, hands_);
 
         // If it still is a wait Event, Keep waitting
@@ -112,9 +116,10 @@ public class GestureInteractionController : MonoBehaviour {
 
         currentEventType_ = eT;
     }
+
     public void WaitToCheck()
     {
-        System.Threading.Timer timer = new System.Threading.Timer(
+        m_timer = new System.Threading.Timer(
             new System.Threading.TimerCallback(InvokeCheckWaitEvent), null,
             0, 1000);//1S定时器  
     }
