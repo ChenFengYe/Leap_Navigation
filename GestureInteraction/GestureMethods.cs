@@ -16,10 +16,6 @@ namespace GestureInteraction
 
         CancelAction,                   // cancel all current action to Init all Interaction
 
-        // 
-
-
-
         // Navigation
         Navigation_Stroll,
         Navigation_RayHit,
@@ -59,7 +55,7 @@ public class GestureMethods : MonoBehaviour {
     
     /* This Function is used to caculate Averange Direction of
      *  Five Fingers*/
-    static Vector3 GetFingersDirection(Leap.Hand hand)
+    public static Vector3 GetFingersDirection(Leap.Hand hand)
     {
         // Debug Check
         if (hand.Fingers == null || hand.Fingers.Count != 5)
