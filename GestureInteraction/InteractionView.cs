@@ -4,6 +4,9 @@ using UnityEditor;
 using GestureInteraction;
 using Leap;
 using Leap.Unity;
+using MathNet.Numerics.LinearAlgebra.Double;
+using MathNet.Numerics.Distributions;
+
 public class InteractionView : MonoBehaviour {
     
     public EventModel m_EventModel;
@@ -72,7 +75,7 @@ public class InteractionView : MonoBehaviour {
 	//------------------------HitRay interaction operations---------------------------
 
 	//--------------------CameraTransition interaction operations---------------------
-	void CameraTransition(float speed_in, Vector3 trans_in, IFuncType type_in){
+	void CameraTransition(float angles_in, Vector3 trans_in, IFuncType type_in){
 		switch (type_in) {
 		case IFuncType.Init:
 			m_camera = GameObject.Find ("FPSController_Standard");
@@ -83,14 +86,16 @@ public class InteractionView : MonoBehaviour {
 				// never change position in height
 				trans_in.y = 0;
 				// calculate mean changing speed
-                speed_in /= 1000;
+				float speed_get = calcSpeed(angles_in);
+				speed_get /= 1000;
 				int speed_cap_num = 20;
-				float mean_s = (speed_in - pre_speed) / speed_cap_num;
+				float mean_s = (angles_in - pre_speed) / speed_cap_num;
 				// uniform acceleration on speed
 				for (int i = 0; i < speed_cap_num; i++) {
+					updateRotation (trans_in);
 					m_camera.transform.position +=(pre_speed + i*mean_s) * trans_in;
 				}
-                pre_speed = speed_in;
+				pre_speed = angles_in;
 			}
 			break;
         case IFuncType.Close:
@@ -99,6 +104,34 @@ public class InteractionView : MonoBehaviour {
 		default:
 			break;
 		}
+	}
+
+	void updateRotation(Vector3 trans_in)
+	{
+		// rotate with transiting
+		trans_in.y = 0;
+		trans_in.Normalize();
+		Vector3 cur_r = m_camera.transform.rotation.eulerAngles;
+		// z axis is the base line
+		Vector3 r_cap_t = Quaternion.FromToRotation(new Vector3(0, 0, 1), trans_in).eulerAngles;
+		float angle_fixed = r_cap_t.y > 180 ? r_cap_t.y - 360 : r_cap_t.y;
+		r_cap_t.Set(0, angle_fixed, 0);
+		Quaternion out_r = Quaternion.Euler(cur_r + r_cap_t / 50);
+		m_camera.transform.rotation = out_r;
+	}
+
+	float calcSpeed(float angle_in)
+	{
+
+		// angle convert to speed
+		// angle: 1.2 ~ 3
+		// mean can set to 3
+		// standard deviation set to 0.9
+		Normal speed_pdf = new Normal(3, 0.9);
+		// input given and get the probability density(PDF)
+
+		double speed_out = speed_pdf.Density((double) angle_in);
+		return (float)speed_out;
 	}
 	//--------------------CameraTransition interaction operations---------------------
 
