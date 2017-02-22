@@ -57,7 +57,7 @@ public class InteractionView : MonoBehaviour {
 			break;
 
         case IFuncType.Update:
-			m_pointer.transform.position = GestureMethods.toVec3(hand.Fingers[1].bones[3].NextJoint);
+			m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
 			m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation); 
 			break;
 

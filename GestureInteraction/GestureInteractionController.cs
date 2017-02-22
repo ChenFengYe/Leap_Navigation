@@ -38,9 +38,8 @@ public class GestureInteractionController : MonoBehaviour {
         
         // Updata Frame
         UpdateAndMergeFrame();
-        Debug.Log(hands_.empty);
+        //Debug.Log(currentEventType_);
 
-        Debug.Log(currentEventType_);
         // Check Current Event Types
         currentEventType_ = m_EventModel.UpdateCurrentEvent(currentEventType_, lastEventType_, hands_);
 
