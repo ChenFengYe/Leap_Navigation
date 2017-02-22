@@ -245,7 +245,8 @@ public class EventModel : MonoBehaviour
     {
         if (hand.GrabStrength > GraspThreshold)
         {
-            for (int i = 0; i < hand.Fingers.Count; i++)
+            // Check Finger is extended except thumb
+            for (int i = 1; i < hand.Fingers.Count; i++)
                 if (hand.Fingers[i].IsExtended)
                     return false;
             return true;
