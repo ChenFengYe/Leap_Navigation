@@ -49,7 +49,6 @@ namespace Leap.Unity {
       Gizmos.matrix = Matrix4x4.Scale(GIZMO_SCALE * Vector3.one);
       Gizmos.DrawIcon(transform.position, "leap_motion.png");
     }
-
     protected virtual void OnEnable() {
       provider = requireComponent<LeapProvider>();
       factory = requireComponent<HandFactory>();
@@ -111,6 +110,7 @@ namespace Leap.Unity {
                 }
             }
         }
+
       //------------------------------------------------------------------------------
       // Remote Hands -- remote
         else
