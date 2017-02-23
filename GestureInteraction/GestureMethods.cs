@@ -55,7 +55,8 @@ namespace GestureInteraction
 }
 
 // GMS means Gesture methods 
-public class GMS : MonoBehaviour {
+public class GMS : MonoBehaviour
+{
     static private float HandsCoressThreshold = 0.01f;          // metrix is meter
     static private float GraspThreshold = 0.8f;                // for detecting this hand is making a fist or not
     static private float GraspThreshold2 = 0.5f;                // for detecting this hand is making a fist or not
@@ -97,26 +98,26 @@ public class GMS : MonoBehaviour {
         // 使用食指的掌故的方向作为 移动方向
         Vector3 MoveDirection = new Vector3();
         MoveDirection = GMS.toVec3(hand.Fingers[1].bones[0].Direction);
-        
+
         // 投影到XZ平面
         MoveDirection.y = 0;
         ReferAxis.y = 0;
-        
+
         // 计算夹角
         Quaternion q = new Quaternion();
         q.SetFromToRotation(ReferAxis, MoveDirection);
         return q;
     }
 
-    public static float GetMoveSpeed(Leap.Hand hand)
+    public static float GetIndexCurve(Leap.Hand hand)
     {
         float speed;
-        
+
         // 使用右手食指的弯曲程度表示移动速度
         var metal = toVec3(hand.Fingers[1].bones[0].Direction);
         var proxi = toVec3(hand.Fingers[1].bones[1].Direction);
         var inter = toVec3(hand.Fingers[1].bones[2].Direction);
-        var tip   = toVec3(hand.Fingers[1].bones[3].Direction);
+        var tip = toVec3(hand.Fingers[1].bones[3].Direction);
 
         var theta1 = Vector3.Dot(metal.normalized, proxi.normalized);
         var theta2 = Vector3.Dot(proxi.normalized, inter.normalized);
@@ -125,12 +126,49 @@ public class GMS : MonoBehaviour {
         speed = theta1 + theta2 + theta3;
         // 这个值一般范围为 1.2 —— 3
         return speed;
-    
+
+    }
+
+    // Manipulate Rotation  计算rotation的旋转矩阵
+    // 输入 LastTouchVector 为上次的 的旋转量  当整个旋转交互结束时（即手离开球的时候 初始 LastTouchVector=new Vector3(1, 1, 1) ）
+    // qBall 即为物体和球的旋转矩阵
+    // 算手与球接触点的时候需要用到的公式    Vector3 touchPoint = CurTouchVector*manipulatedBall.scale + manipulatedBall.transformate.position
+    public static Quaternion GetManipulationRotation(Hand hand, Transform manipulatedBall, Vector3 LastTouchVector, out Vector3 CurTouchVector)
+    {
+        Quaternion qBall = new Quaternion();
+        CurTouchVector = (manipulatedBall.position - toVec3(hand.PalmPosition)).normalized;
+        if (LastTouchVector != new Vector3(1, 1, 1))
+	    {
+            qBall.SetFromToRotation(LastTouchVector, CurTouchVector);
+            LastTouchVector = CurTouchVector;
+	    }
+        return qBall;
+    }
+
+    // Manipulate Rotation 检查手与球有无接触
+    public static bool CheckHandIsTouchedBall(Hand hand, Transform manipulatedBall)
+    {
+        bool IsTouch = false;
+        for (int i = 0; i < hand.Fingers.Count; i++)
+		{
+		    for (int j = 0; j < hand.Fingers[i].bones.Length; j++)
+			{
+			    float d = Vector3.Distance(
+                    toVec3(hand.Fingers[i].bones[j].NextJoint),
+                    manipulatedBall.position);
+                if (d < manipulatedBall.localScale[0])
+	            {
+                    IsTouch = true;
+	            	break;
+	            }
+			}
+		}
+        return IsTouch;
     }
 
     //--------------------------------------------------------------------------------------------------
     // Fix Data 的函数
-    static public bool CheckHandsData(HandPair hands,HandPair LastHands, bool m_OpenFixeFrameData)
+    static public bool CheckHandsData(HandPair hands, HandPair LastHands, bool m_OpenFixeFrameData)
     {
         // Check hands are empty to decide fix or hold on all interaction
         if (hands.empty)
@@ -168,7 +206,7 @@ public class GMS : MonoBehaviour {
     static public bool checkFullFist(Hand hand)
     {
         float sum = 0.0f;
-        
+
         for (int i = 0; i < hand.Fingers.Count; i++)
         {
             var finger = hand.Fingers[i];
@@ -230,7 +268,7 @@ public class GMS : MonoBehaviour {
     }
 
     // 检查两手相向移动
-    static public bool CheckHandsMoveCross(HandPair hands, HandPair LastHands )
+    static public bool CheckHandsMoveCross(HandPair hands, HandPair LastHands)
     {
         if (hands.empty)
             Debug.Log("There may exist an error or this is a pair fixed hands");
@@ -251,7 +289,7 @@ public class GMS : MonoBehaviour {
                 continue;
             if (i == 1) // index finger
             {
-                OnlyIndexPointing = hand.Fingers[i].IsExtended ? true : false;
+                OnlyIndexPointing = GetIndexCurve(hand) > 1.2 ? true : false;
                 if (!OnlyIndexPointing) break;
             }
             else
@@ -263,7 +301,7 @@ public class GMS : MonoBehaviour {
         return OnlyIndexPointing;
     }
 
-    static public  Vector3 toVec3(Leap.Vector v)
+    static public Vector3 toVec3(Leap.Vector v)
     {
         Vector3 v_3 = new Vector3(v.x, v.y, v.z);
         return v_3;

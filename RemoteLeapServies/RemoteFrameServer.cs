@@ -280,10 +280,15 @@ public class RemoteFrameServer : MonoBehaviour
 
     public Leap.InteractionBox GetRemoteInteractionBox(FrameData Jframe)
     {
-        Leap.InteractionBox RemoteBox = new Leap.InteractionBox
+        if (Jframe.interactionBox == null)
+        {
+            Leap.InteractionBox RemoteBox = new Leap.InteractionBox();
+            return RemoteBox;
+        }
+        Leap.InteractionBox RemoteBox1 = new Leap.InteractionBox
             (toVec3(Jframe.interactionBox.center),
             toVec3(Jframe.interactionBox.size));
-        return RemoteBox;
+        return RemoteBox1;
     }
 
     public Vector toVec3(List<float> a)
