@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Leap;
 using System;
+using UnityEditor;
 
 namespace Leap.Unity {
   /** A basic Leap hand model constructed dynamically vs. using pre-existing geometry*/
@@ -362,7 +363,7 @@ namespace Leap.Unity {
       mesh.SetIndices(tris.ToArray(), MeshTopology.Triangles, 0);
       mesh.RecalculateBounds();
       mesh.RecalculateNormals();
-      mesh.Optimize();
+      //mesh.Optimize();
       mesh.UploadMeshData(true);
 
       return mesh;

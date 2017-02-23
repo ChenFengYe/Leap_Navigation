@@ -20,7 +20,7 @@ public class EventModel : MonoBehaviour
     // Event
     public event Action<Hand, IFuncType> Action_Navigation_HitRay;              // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
     public event Action<HandPair, IFuncType> Action_Navigation_Scale;           //
-    public event Action<float, Quaternion, IFuncType> Action_Navigation_Stroll;    // Speed direction 
+    public event Action<float, Vector3, Vector3,IFuncType> Action_Navigation_Stroll;    // Speed direction 
 
     // constant
 
@@ -48,6 +48,8 @@ public class EventModel : MonoBehaviour
 
         //-------------------------------------------------------------
         // Debug part
+
+        Debug.Log(GMS.GetIndexCurve(hands.R));
         //Debug.Log(GMS.checkFullFist(hands.L));
 
         //-------------------------------------------------------------
@@ -120,9 +122,10 @@ public class EventModel : MonoBehaviour
                 if (LastEventType != CurrentEventType)
                 {
                     Action_Navigation_Stroll(
-                        GMS.GetMoveSpeed(hands.R),
-                        GMS.GetCameraRotation(hands.R, 
-                        m_RightLMReference.transform.forward),
+                        GMS.GetIndexCurve(hands.R),
+                        // 使用食指的掌故的方向作为 移动方向
+                        GMS.toVec3(hands.R.Fingers[1].bones[0].Direction),
+                        m_RightLMReference.transform.forward,
                         IFuncType.Init);
                     return CurrentEventType;                            // Continue
                 }
@@ -130,18 +133,20 @@ public class EventModel : MonoBehaviour
                     && !GMS.checkFullFist(hands.L))
                 {
                     Action_Navigation_Stroll(
-                        GMS.GetMoveSpeed(hands.R),
-                        GMS.GetCameraRotation(hands.R, 
-                        m_RightLMReference.transform.forward),
+                        GMS.GetIndexCurve(hands.R),
+                        // 使用食指的掌故的方向作为 移动方向
+                        GMS.toVec3(hands.R.Fingers[1].bones[0].Direction),
+                        m_RightLMReference.transform.forward,
                         IFuncType.Update);
                     return CurrentEventType;                            // Continue
                 }
                 else
                 {
                     Action_Navigation_Stroll(
-                        GMS.GetMoveSpeed(hands.R),
-                        GMS.GetCameraRotation(hands.R, 
-                        m_RightLMReference.transform.forward),
+                        GMS.GetIndexCurve(hands.R),
+                        // 使用食指的掌故的方向作为 移动方向
+                        GMS.toVec3(hands.R.Fingers[1].bones[0].Direction),
+                        m_RightLMReference.transform.forward,
                         IFuncType.Close);                               // Close
                     return IEventType.NoAction;
                 }
