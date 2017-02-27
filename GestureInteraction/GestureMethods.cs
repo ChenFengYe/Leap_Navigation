@@ -73,7 +73,7 @@ public class GMS : MonoBehaviour
 
         // Data Calculating
         Vector3 FingersDirection = Vector3.zero;
-        for (int i = 0; i < hand.Fingers.Count; i++)
+        for (int i = 1; i < hand.Fingers.Count; i++)
         {
             FingersDirection += toVec3(hand.Fingers[i].Direction);
         }
