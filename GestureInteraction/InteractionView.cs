@@ -15,8 +15,14 @@ public class InteractionView : MonoBehaviour
     GameObject m_pointer;
     Pointer m_pointer_comp;
 
+	// Selection
+	// selection with highlight
+	public bool multiMode;
+	GameObject pre_selected;
+	List<GameObject> objSelected;
+
     // CameraTransition interaction operations
-    GameObject m_camera;
+    public GameObject m_camera;
     float pre_speed;
 
     // Manipulation operations
@@ -74,7 +80,8 @@ public class InteractionView : MonoBehaviour
                     m_pointer_comp.badTeleMat = badmat;
                     obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/TeleportHighlight.prefab");
                     GameObject telhigh = obj as GameObject;
-                    m_pointer_comp.teleportHighlight = telhigh;
+					m_pointer_comp.teleportHighlight = telhigh;
+					m_pointer_comp.pointerType = Pointer.PointerType.Parabola;
                 }
                 break;
 
@@ -90,6 +97,10 @@ public class InteractionView : MonoBehaviour
                 {
                     m_pointer.SetActive(false);
                     m_pointer_comp.DisableTeleport();
+					// move current camera position
+					Vector3 cur_pos = m_camera.transform.position;
+					m_camera.transform.position = m_pointer_comp.hit_out.point;
+					m_camera.transform.position.y = cur_pos.y;
                 }
                 break;
 
@@ -109,6 +120,12 @@ public class InteractionView : MonoBehaviour
                 {
                     m_pointer.SetActive(true);
                     m_pointer_comp.EnableTeleport();
+					// initialize selection
+					GameObject m_camera = GameObject.Find("Main Camera");
+					m_camera.AddComponent<HighlightingEffect>();
+					objSelected = new List<GameObject>();
+					multiMode = true;
+					pre_selected = null;
                 }
                 else
                 {
@@ -127,6 +144,7 @@ public class InteractionView : MonoBehaviour
                     obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/TeleportHighlight.prefab");
                     GameObject telhigh = obj as GameObject;
                     m_pointer_comp.teleportHighlight = telhigh;
+					m_pointer_comp.pointerType = Pointer.PointerType.Line;
                 }
                 break;
 
@@ -135,6 +153,44 @@ public class InteractionView : MonoBehaviour
                 //m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
                 m_pointer.transform.rotation = Quaternion.FromToRotation(Vector3.forward, m_ControllBall_R.direc);
                 //m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation);
+				// selection
+				// #1: add or change object(s) selected 
+				if (m_pointer_comp.hit_out.collider != null)
+				{
+					GameObject cur_hit_obj = m_pointer_comp.hit_out.collider.gameObject;
+
+					if (cur_hit_obj == pre_selected)
+						return;
+
+					if (cur_hit_obj.GetComponent<SpectrumController>() == null)
+					{
+						// if hit object is not selected before
+						if (!multiMode)
+						{
+							removeAllHighlighting();
+							objSelected.Clear();
+						}
+						objSelected.Add(cur_hit_obj);
+						cur_hit_obj.AddComponent<SpectrumController>();
+					}
+					else
+					{
+						// if hit object is selected before, then we cancel the selection on it
+						// ToDo: it should compared with the last obj. Since in continue-selection, one object can be hit constantly.
+						if (objSelected.Count > 1)
+						{
+							if (cur_hit_obj != pre_selected)
+							{
+								removeHighlighting(cur_hit_obj);
+								objSelected.Remove(cur_hit_obj);
+							}
+						}
+					}
+					pre_selected = cur_hit_obj;
+				}
+				else
+					pre_selected = null;
+				
                 break;
 
             case IFuncType.Close:
@@ -142,6 +198,10 @@ public class InteractionView : MonoBehaviour
                 {
                     m_pointer.SetActive(false);
                     m_pointer_comp.DisableTeleport();
+					removeAllHighlighting();
+					objSelected.Clear();
+					objSelected = null;
+					Destroy(Camera.main.GetComponent<HighlightingEffect>());
                 }
                 break;
 
@@ -149,6 +209,27 @@ public class InteractionView : MonoBehaviour
                 break;
         }
     }
+
+	void removeAllHighlighting()
+	{
+		foreach (var obj_item in objSelected)
+		{
+			removeHighlighting(obj_item);
+		}
+	}
+
+	void removeHighlighting(GameObject obj_in)
+	{
+		if (obj_in.GetComponent<SpectrumController>() != null)
+		{
+			Destroy(obj_in.GetComponent<SpectrumController>());
+		}
+
+		if (obj_in.GetComponent<HighlightableObject>() != null)
+		{
+			Destroy(obj_in.GetComponent<HighlightableObject>());
+		}
+	}
 
     //--------------------CameraTransition interaction operations---------------------
     void CameraTransition(float angles_in, Vector3 trans_in, Vector3 referAxsis, IFuncType type_in)
