@@ -32,6 +32,7 @@ public class CycleHandPairs : MonoBehaviour {
     disableAllGroups();
     CurrentGroup = 7;                       // 连接 Local 手模型
     HandPool.ToggleGroup(GroupNames[6]);    // 连接 Remote 手模型
+    HandPool.ToggleGroup(GroupNames[8]);    // 连接 物理 手模型
   }
   
   // Update is called once per frame

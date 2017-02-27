@@ -27,6 +27,8 @@ public class InteractionView : MonoBehaviour
     void Start()
     {
         m_EventModel.Action_Navigation_HitRay += PointerHit;
+        m_EventModel.Action_Selection_Single += PointerHit;
+
         m_EventModel.Action_Navigation_Stroll += CameraTransition;
         //m_EventModel.Navigation_HitRay_Close += initPointer;
         // initialize the HitRay: initPointer();
@@ -44,37 +46,50 @@ public class InteractionView : MonoBehaviour
     //------------------------HitRay interaction operations---------------------------
 
     // change it into function-seleciton
-    void PointerHit(Hand hand, IFuncType type_in)
+    void PointerHit(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
     {
         switch (type_in)
         {
 
             case IFuncType.Init:
-                m_pointer.SetActive(true);
-                m_pointer = new GameObject("MyPointer");
-                m_pointer.transform.SetParent(transform);
-                m_pointer.transform.localPosition = Vector3.zero;
-                m_pointer.transform.localRotation = Quaternion.identity;
-                // initialize the pointer component
-                m_pointer_comp = m_pointer.AddComponent<Pointer>();
-                UnityEngine.Object obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrows.mat");
-                Material goodmat = obj as Material;
-                m_pointer_comp.goodTeleMat = goodmat;
-                obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrowsBad.mat");
-                Material badmat = obj as Material;
-                m_pointer_comp.badTeleMat = badmat;
-                obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/prebs/TeleportHighlightExample.prefab");
-                GameObject telhigh = obj as GameObject;
-                m_pointer_comp.teleportHighlight = telhigh;
+                if(m_pointer != null)
+                {
+                    m_pointer.SetActive(true);
+                    m_pointer_comp.EnableTeleport();
+                }
+                else
+                {
+                    m_pointer = new GameObject("MyPointer");
+                    m_pointer.transform.SetParent(transform);
+                    m_pointer.transform.localPosition = Vector3.zero;
+                    m_pointer.transform.localRotation = Quaternion.identity;
+                    // initialize the pointer component
+                    m_pointer_comp = m_pointer.AddComponent<Pointer>();
+                    UnityEngine.Object obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrows.mat");
+                    Material goodmat = obj as Material;
+                    m_pointer_comp.goodTeleMat = goodmat;
+                    obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrowsBad.mat");
+                    Material badmat = obj as Material;
+                    m_pointer_comp.badTeleMat = badmat;
+                    obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/TeleportHighlight.prefab");
+                    GameObject telhigh = obj as GameObject;
+                    m_pointer_comp.teleportHighlight = telhigh;
+                }
                 break;
 
             case IFuncType.Update:
-                m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
-                m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation);
+                m_pointer.transform.position = m_ControllBall_R.transform.position;
+                //m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
+                m_pointer.transform.rotation = Quaternion.FromToRotation(Vector3.forward, m_ControllBall_R.direc);
+                //m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation);
                 break;
 
             case IFuncType.Close:
-                m_pointer.SetActive(false);
+                if(m_pointer != null)
+                {
+                    m_pointer.SetActive(false);
+                    m_pointer_comp.DisableTeleport();
+                }
                 break;
 
             default:
@@ -82,6 +97,57 @@ public class InteractionView : MonoBehaviour
         }
     }
     //------------------------HitRay interaction operations---------------------------
+
+    void PointerHit(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
+    {
+        switch (type_in)
+        {
+
+            case IFuncType.Init:
+                if (m_pointer != null)
+                {
+                    m_pointer.SetActive(true);
+                    m_pointer_comp.EnableTeleport();
+                }
+                else
+                {
+                    m_pointer = new GameObject("MyPointer");
+                    m_pointer.transform.SetParent(transform);
+                    m_pointer.transform.localPosition = Vector3.zero;
+                    m_pointer.transform.localRotation = Quaternion.identity;
+                    // initialize the pointer component
+                    m_pointer_comp = m_pointer.AddComponent<Pointer>();
+                    UnityEngine.Object obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrows.mat");
+                    Material goodmat = obj as Material;
+                    m_pointer_comp.goodTeleMat = goodmat;
+                    obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrowsBad.mat");
+                    Material badmat = obj as Material;
+                    m_pointer_comp.badTeleMat = badmat;
+                    obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/TeleportHighlight.prefab");
+                    GameObject telhigh = obj as GameObject;
+                    m_pointer_comp.teleportHighlight = telhigh;
+                }
+                break;
+
+            case IFuncType.Update:
+                m_pointer.transform.position = m_ControllBall_R.transform.position;
+                //m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
+                m_pointer.transform.rotation = Quaternion.FromToRotation(Vector3.forward, m_ControllBall_R.direc);
+                //m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation);
+                break;
+
+            case IFuncType.Close:
+                if (m_pointer != null)
+                {
+                    m_pointer.SetActive(false);
+                    m_pointer_comp.DisableTeleport();
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
 
     //--------------------CameraTransition interaction operations---------------------
     void CameraTransition(float angles_in, Vector3 trans_in, Vector3 referAxsis, IFuncType type_in)
@@ -109,8 +175,8 @@ public class InteractionView : MonoBehaviour
                     //    m_camera.transform.position += (pre_speed + i * mean_s) * trans_in;
 
                     //}
-                    StartCoroutine(updateCamera(speed_get, trans_in, referAxsis));
-
+                    //StartCoroutine();
+                    updateCamera(speed_get, trans_in, referAxsis);
                     pre_speed = speed_get;
                 }
                 break;
@@ -123,7 +189,7 @@ public class InteractionView : MonoBehaviour
     }
 
 
-    IEnumerator updateCamera(float speed_in, Vector3 trans_in, Vector3 referAxsis)
+    void updateCamera(float speed_in, Vector3 trans_in, Vector3 referAxsis)
     {
 
         int speed_cap_num = 20;
@@ -132,22 +198,43 @@ public class InteractionView : MonoBehaviour
         for (int i = 0; i < speed_cap_num; i++)
         {
             updateRotation(trans_in, referAxsis);
-            m_camera.transform.position += (pre_speed + i * mean_s) * trans_in;
-            yield return new WaitForSeconds(0.005f);
+            //m_camera.transform.position += (pre_speed + i * mean_s) * trans_in;
+            //m_camera.GetComponent<Rigidbody>().MovePosition((pre_speed + i * mean_s) * trans_in);
+            //yield return new WaitForSeconds(0.005f);
         }
     }
-    void updateRotation(Vector3 trans_in, Vector3 referAxsis)
+    public void updateRotation(Vector3 trans_in, Vector3 referAxsis)
     {
-        // rotate with transiting
-        trans_in.y = 0;
-        trans_in.Normalize();
-        Vector3 cur_r = m_camera.transform.rotation.eulerAngles;
-        // z axis is the base line
-        Vector3 r_cap_t = Quaternion.FromToRotation(referAxsis, trans_in).eulerAngles;
-        float angle_fixed = r_cap_t.y > 180 ? r_cap_t.y - 360 : r_cap_t.y;
-        r_cap_t.Set(0, angle_fixed, 0);
-        Quaternion out_r = Quaternion.Euler(cur_r + r_cap_t / 800);
-        m_camera.transform.rotation = out_r;
+        float sensitivetyZ = 2f;
+        if (m_camera == null)
+        {
+            m_camera = GameObject.Find("FPSController_Standard");            
+        }
+        if (Input.GetAxis("Horizontal") != 0)
+        {
+            float rotationZ = Input.GetAxis("Horizontal") * sensitivetyZ;
+            m_camera.transform.Rotate(0, rotationZ/10, 0);
+        }  
+        //// rotate with transiting
+        //trans_in.y = 0;
+        //trans_in.Normalize();
+        //Vector3 cur_r = m_camera.transform.rotation.eulerAngles;
+        //// z axis is the base line
+        //Vector3 r_cap_t = Quaternion.FromToRotation(referAxsis, trans_in).eulerAngles;
+        //float angle_fixed = r_cap_t.y > 180 ? r_cap_t.y - 360 : r_cap_t.y;
+        //r_cap_t.Set(0, angle_fixed, 0);
+        //r_cap_t /= 1000;
+        //r_cap_t += cur_r;
+        ////float r_volexity = 0.0f;
+        ////Debug.Log("Before: " + r_cap_t.y);
+        ////r_cap_t.y = Mathf.SmoothDamp(cur_r.y, r_cap_t.y, ref r_volexity, 0.1f);
+        ////Debug.Log("Afetr: " + r_cap_t.y);
+        //Quaternion out_r = Quaternion.Euler(r_cap_t);
+        //m_camera.transform.rotation = out_r;
+    }
+    void FixedUpdate()
+    {
+
     }
 
     float calcSpeed(float angle_in)
@@ -163,7 +250,7 @@ public class InteractionView : MonoBehaviour
         double speed_out = speed_pdf.Density(10 * (double)angle_in);
         //Debug.Log("angle_in" + angle_in);
         //Debug.Log("speed_out: " + speed_out);
-        return (float)speed_out * 10;
+        return (float)speed_out;
     }
     //--------------------CameraTransition interaction operations---------------------
 
@@ -190,7 +277,7 @@ public class InteractionView : MonoBehaviour
                 break;
             case IFuncType.Update:
                 if(m_object != null && m_orthBall != null)
-                {
+                {   
                     // get the Quaternion-rotation
                     Quaternion rotate_get = Quaternion.Euler(0, 10, 0);
                     m_object.transform.rotation *= rotate_get;

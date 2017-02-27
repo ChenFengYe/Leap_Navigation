@@ -18,8 +18,17 @@ public class GestureInteractionController : MonoBehaviour {
     private IEventType              currentEventType_;
     private IEventType              lastEventType_;
 
-    private System.Threading.Timer m_timer;
+    public HitBall m_ControllBall_R;
+    public HitBall m_ControllBall_L;
+
+      private System.Threading.Timer m_timer;
 	// Use this for initialization
+ 
+    void Awake()
+    {
+        //Application.targetFrameRate = 60;//此处限定60帧
+    }
+
 	void Start () {
         
         // Init Hands
@@ -34,18 +43,28 @@ public class GestureInteractionController : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-        
+	void FixedUpdate () {
+
+        m_InteractionView.updateRotation(new Vector3(1, 1, 1), new Vector3(1, 1, 1));
         // Updata Frame
         UpdateAndMergeFrame();
-        //Debug.Log(currentEventType_);
 
-        // Check Current Event Types
-        currentEventType_ = m_EventModel.UpdateCurrentEvent(currentEventType_, lastEventType_, hands_);
+        // Check Current Event
+        m_EventModel.CheckCurrentEvent(currentEventType_, lastEventType_, hands_,
+            m_ControllBall_L, m_ControllBall_R);
+
+        // Do Current Event
+        m_EventModel.DoCurrentEvent(currentEventType_, lastEventType_, hands_, 
+            m_ControllBall_L, m_ControllBall_R);
 
         // Change Frame
         lastEventType_ = currentEventType_;
 	}
+
+    public void SetEventType(IEventType et)
+    {
+        currentEventType_ = et;
+    }
 
     private void UpdateAndMergeFrame()
     {
@@ -84,11 +103,11 @@ public class GestureInteractionController : MonoBehaviour {
                 break;
             }
             // Check If Remote Server has no left hand
-            if (i == m_RemoteHandServer.RemoteFrame.Hands.Count - 1)
-            {
-                ClearHandsInFrame();
-                return;
-            }
+            //if (i == m_RemoteHandServer.RemoteFrame.Hands.Count - 1)
+            //{
+            //    ClearHandsInFrame();
+            //    return;
+            //}
         }
     }
 
@@ -100,26 +119,26 @@ public class GestureInteractionController : MonoBehaviour {
         hands_.empty = true;
     }
 
-    void InvokeCheckWaitEvent(object a)
-    {
-        m_timer.Dispose();// stop waiting and distroy the timer.
+    //void InvokeCheckWaitEvent(object a)
+    //{
+    //    m_timer.Dispose();// stop waiting and distroy the timer.
 
-        IEventType eT = m_EventModel.CheckWaitEvent(currentEventType_, hands_);
+    //    IEventType eT = m_EventModel.CheckWaitEvent(currentEventType_, hands_);
 
-        // If it still is a wait Event, Keep waitting
-        if (m_EventModel.IsWaitEvent(eT))
-        {
-            WaitToCheck();
-            lastEventType_ = eT;
-        }
+    //    // If it still is a wait Event, Keep waitting
+    //    if (m_EventModel.IsWaitEvent(eT))
+    //    {
+    //        WaitToCheck();
+    //        lastEventType_ = eT;
+    //    }
 
-        currentEventType_ = eT;
-    }
+    //    currentEventType_ = eT;
+    //}
 
-    public void WaitToCheck()
-    {
-        m_timer = new System.Threading.Timer(
-            new System.Threading.TimerCallback(InvokeCheckWaitEvent), null,
-            0, 1000);//1S定时器  
-    }
+    //public void WaitToCheck()
+    //{
+    //    m_timer = new System.Threading.Timer(
+    //        new System.Threading.TimerCallback(InvokeCheckWaitEvent), null,
+    //        0, 1000);//1S定时器  
+    //}
 }
