@@ -35,7 +35,6 @@ public class HitBall : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () {
 
-        UpdateOriginPosiAndRadius();
 
         if (IsIndexTouched && IsThumbTouched)
         {
@@ -43,16 +42,16 @@ public class HitBall : MonoBehaviour {
             if (!IsCatchBall)
             {
                 IsCatchBall = true;
-                // Left 
+                // right
                 if (!IsLeft)
                 {
                     m_GIC.SetEventType(IEventType.Navigation_RayHit);
                 }
 
-                // right
+                // Left 
                 else
                 {
-                    m_GIC.SetEventType(IEventType.Navigation_RayHit);
+                    m_GIC.SetEventType(IEventType.Manipulation_Rotation);
                 }
 	        }
             UpdateBallPosition();
@@ -65,9 +64,10 @@ public class HitBall : MonoBehaviour {
 	        	IsCatchBall = false;
                 m_GIC.SetEventType(IEventType.CancelAction);
 	        }
-            //m_EventModel.(this.name, transform);
             transform.position = transform.parent.position;
         }
+
+        UpdateOriginPosiAndRadius();
 	}
 
     private void UpdateOriginPosiAndRadius()
@@ -114,10 +114,6 @@ public class HitBall : MonoBehaviour {
         {
             IsIndexTouched = false;
         }
-
     }
-    //void OnTriggerStay(Collider other)
-    //{
-    //    Debug.Log("触发信息检测_Stay_碰撞到的物体的名字是：" + other.gameObject.name);
-    //}
+
 }

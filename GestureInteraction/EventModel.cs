@@ -21,8 +21,10 @@ public class EventModel : MonoBehaviour
     public event Action<Hand, HitBall, IFuncType>           Action_Navigation_HitRay;              // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
     public event Action<HandPair, IFuncType>                Action_Navigation_Scale;           //
     public event Action<float, Vector3, Vector3,IFuncType>  Action_Navigation_Stroll;    // Speed direction 
-    public event Action<>
 
+    public event Action<Hand, HitBall, IFuncType>           Action_Selection_Single;              // 命名方式： 交互类型 - 实现交互实例(- 函数功能)
+
+    public event Action<Hand, HitBall, IFuncType>           Action_Manipulation_Rotation;
     // Manipulater Event
     public event Action<Vector3> CatchBall;
     public event Action<Vector3> ReleaseBall;
@@ -57,13 +59,27 @@ public class EventModel : MonoBehaviour
                         IEventType.Navigation_RayHit : IEventType.Selection_Single;
                 }
                 break;
+            case IEventType.Manipulation_Rotation:
+                if (LastEventType == CurrentEventType)
+                {
+                    CurrentEventType = m_ControllBall_L.radius < 0.15 ?
+                        IEventType.Manipulation_Rotation : IEventType.Manipulation_Stroll;
+                }
+                break;
+            case IEventType.Manipulation_Stroll:
+                if (LastEventType == CurrentEventType)
+                {
+                    CurrentEventType = m_ControllBall_L.radius < 0.15 ?
+                        IEventType.Manipulation_Rotation : IEventType.Manipulation_Stroll;
+                }
+                break;
             default:
                 break;
         }
     }
 
     public void DoCurrentEvent(IEventType CurrentEventType, IEventType LastEventType, HandPair hands, 
-        HitBall m_ContrillBall_L, HitBall m_ControllBall_R)
+        HitBall m_ControllBall_L, HitBall m_ControllBall_R)
     {
         // Check hands are empty to decide fix or hold on all interaction
         //if (!GMS.CheckHandsData(hands, LastHands, m_OpenFixeFrameData)) return;
@@ -80,9 +96,12 @@ public class EventModel : MonoBehaviour
                     {
                         Action_Navigation_HitRay(hands.R,m_ControllBall_R, IFuncType.Close);
                     }
+
+                    if (LastEventType == IEventType.Selection_Single)
+                    {
+                        Action_Selection_Single(hands.R, m_ControllBall_R, IFuncType.Close);
+                    }
                 }
-                break;
-            case IEventType.Navigation_Stroll:
                 break;
             case IEventType.Navigation_RayHit:
                 if (LastEventType != CurrentEventType)
@@ -94,14 +113,24 @@ public class EventModel : MonoBehaviour
                     Action_Navigation_HitRay(hands.R, m_ControllBall_R, IFuncType.Update);
                 }
                 break;
-            case IEventType.Navigation_Scaling:
-                break;
-            case IEventType.Selection_Mutiple:
-                break;
             case IEventType.Selection_Single:
                 if (LastEventType != CurrentEventType)
                 {
-                    Ac
+                    Action_Selection_Single(hands.R, m_ControllBall_R, IFuncType.Init);
+                }
+                else
+                {
+                    Action_Selection_Single(hands.R, m_ControllBall_R, IFuncType.Update);
+                }
+                break;
+            case IEventType.Manipulation_Rotation:
+                if (LastEventType != CurrentEventType)
+                {
+                    Action_Manipulation_Rotation(hands.L, m_ControllBall_L, IFuncType.Init);
+                }
+                else
+                {
+                    Action_Manipulation_Rotation(hands.L, m_ControllBall_L, IFuncType.Update);
                 }
                 break;
             default:
