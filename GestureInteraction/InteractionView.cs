@@ -23,6 +23,11 @@ public class InteractionView : MonoBehaviour
     GameObject m_orthBall;
     public GameObject m_object;
 
+    Vector3 originDirec = new Vector3();
+    Vector3 nextDirec = new Vector3();
+    Quaternion originQ = new Quaternion();
+    Quaternion nextQ = new Quaternion();
+    int orginRotationAxis = -1;      // 0 x   1 y  2 z
     // Use this for initialization
     void Start()
     {
@@ -31,6 +36,7 @@ public class InteractionView : MonoBehaviour
 
         m_EventModel.Action_Navigation_Stroll += CameraTransition;
         //m_EventModel.Navigation_HitRay_Close += initPointer;
+        m_EventModel.Action_Manipulation_Rotation += RotateObject;
         // initialize the HitRay: initPointer();
     }
 
@@ -79,8 +85,9 @@ public class InteractionView : MonoBehaviour
 
             case IFuncType.Update:
                 m_pointer.transform.position = m_ControllBall_R.transform.position;
+                Debug.Log(m_ControllBall_R.transform.position);
                 //m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
-                m_pointer.transform.rotation = Quaternion.FromToRotation(Vector3.forward, m_ControllBall_R.direc);
+                m_pointer.transform.rotation = Quaternion.FromToRotation(Vector3.forward, m_ControllBall_R.direc.normalized);
                 //m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation);
                 break;
 
@@ -97,57 +104,6 @@ public class InteractionView : MonoBehaviour
         }
     }
     //------------------------HitRay interaction operations---------------------------
-
-    void PointerHit(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
-    {
-        switch (type_in)
-        {
-
-            case IFuncType.Init:
-                if (m_pointer != null)
-                {
-                    m_pointer.SetActive(true);
-                    m_pointer_comp.EnableTeleport();
-                }
-                else
-                {
-                    m_pointer = new GameObject("MyPointer");
-                    m_pointer.transform.SetParent(transform);
-                    m_pointer.transform.localPosition = Vector3.zero;
-                    m_pointer.transform.localRotation = Quaternion.identity;
-                    // initialize the pointer component
-                    m_pointer_comp = m_pointer.AddComponent<Pointer>();
-                    UnityEngine.Object obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrows.mat");
-                    Material goodmat = obj as Material;
-                    m_pointer_comp.goodTeleMat = goodmat;
-                    obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/ArcArrowsBad.mat");
-                    Material badmat = obj as Material;
-                    m_pointer_comp.badTeleMat = badmat;
-                    obj = AssetDatabase.LoadMainAssetAtPath("Assets/GestureInteraction/InteractionViewInstance/HitRay/MyMaterials/TeleportHighlight.prefab");
-                    GameObject telhigh = obj as GameObject;
-                    m_pointer_comp.teleportHighlight = telhigh;
-                }
-                break;
-
-            case IFuncType.Update:
-                m_pointer.transform.position = m_ControllBall_R.transform.position;
-                //m_pointer.transform.position = GMS.toVec3(hand.Fingers[1].bones[3].NextJoint);
-                m_pointer.transform.rotation = Quaternion.FromToRotation(Vector3.forward, m_ControllBall_R.direc);
-                //m_pointer.transform.rotation = UnityQuaternionExtension.ToQuaternion(hand.Fingers[1].bones[3].Rotation);
-                break;
-
-            case IFuncType.Close:
-                if (m_pointer != null)
-                {
-                    m_pointer.SetActive(false);
-                    m_pointer_comp.DisableTeleport();
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
 
     //--------------------CameraTransition interaction operations---------------------
     void CameraTransition(float angles_in, Vector3 trans_in, Vector3 referAxsis, IFuncType type_in)
@@ -293,10 +249,79 @@ public class InteractionView : MonoBehaviour
         }
     }
     //---------------------Manipulation interaction operations------------------------
+    void RotateObject(Hand hand, HitBall m_ControllBall_L, IFuncType type_in)
+    {
+        switch (type_in)
+        {
+            case IFuncType.Init:
+                originDirec = m_ControllBall_L.direc;
+                originQ.SetFromToRotation(originDirec, originDirec);
+                break;
+            case IFuncType.Update:
 
+
+                // check is too close to center
+                if (m_ControllBall_L.radius < 0.05)
+                {
+                    originDirec = m_ControllBall_L.direc;
+                    originQ.SetFromToRotation(originDirec, originDirec);
+                    return;
+                }
+
+                nextDirec = m_ControllBall_L.direc;
+                nextQ.SetFromToRotation(originDirec, nextDirec);
+
+                //Debug.Log(Vector3.Dot(originDirec.normalized, nextDirec.normalized));
+
+                // check if two vector is very similar
+                if (Vector3.Dot(originDirec.normalized, nextDirec.normalized) > 0.999)
+                {
+                    return;
+                }
+
+                GameObject a = GameObject.Find("CubeTest");
+                Quaternion q = Quaternion.Slerp(originQ, nextQ, Time.deltaTime*10);
+
+                LineRender lr = a.GetComponent<LineRender>();
+                if (Mathf.Abs(q.x) > Mathf.Abs(q.y) && Mathf.Abs(q.x) > Mathf.Abs(q.z))
+                {
+                    q.y = 0f; q.z = 0f;
+                    lr.DrawXCycline();
+                }
+                else if (Mathf.Abs(q.y) > Mathf.Abs(q.z))
+                {
+                    q.x = 0f; q.z = 0f;
+                    lr.DrawYCycline();
+                }
+                else
+                {
+                    q.x = 0f; q.y = 0f;
+                    lr.DrawZCycline();
+                }
+
+                //if (orginRotationAxis != CurrentRotationAxis)
+                //{
+                //    orginRotationAxis = CurrentRotationAxis;
+                //    originDirec = nextDirecl
+                //}
+                a.transform.rotation = q * a.transform.rotation;
+
+                originDirec = nextDirec;
+                originQ = nextQ;
+                break;
+            case IFuncType.Close:
+                break;
+            default:
+                break;
+        }
+    }
 
 
     //---------------------------------------------------
     //---------------------------------------------------
-
+    
+    
 }
+
+                //Quaternion.SlerpUnclamped(a.transform.rotation, q, Time.deltaTime);
+                //Vector3 eularAngles = q.eulerAngles;

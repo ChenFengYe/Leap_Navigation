@@ -30,6 +30,8 @@ namespace GestureInteraction
         Selection_Single,
 
         // Manipulation
+        Manipulation_Rotation,
+        Manipulation_Stroll,
     }
 
     public enum IFuncType
