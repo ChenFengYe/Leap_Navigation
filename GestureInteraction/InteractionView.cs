@@ -6,6 +6,7 @@ using Leap;
 using Leap.Unity;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Distributions;
+using System.Collections.Generic;
 
 public class InteractionView : MonoBehaviour
 {
@@ -59,7 +60,7 @@ public class InteractionView : MonoBehaviour
     //------------------------HitRay interaction operations---------------------------
 
     // change it into function-seleciton
-    void PointerHit(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
+    void RayHit_Navigation(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
     {
         switch (type_in)
         {
@@ -107,7 +108,7 @@ public class InteractionView : MonoBehaviour
 					          // move current camera position
                     Vector3 cur_pos = m_camera.transform.position;
 					          m_camera.transform.position = m_pointer_comp.hit_out.point;
-					          m_camera.transform.position.y = cur_pos.y;
+                              m_camera.transform.position.Set(m_camera.transform.position.x, cur_pos.y, m_camera.transform.position.z);
                 }
                 break;
 
@@ -118,7 +119,7 @@ public class InteractionView : MonoBehaviour
     //------------------------HitRay interaction operations---------------------------
 
 
-    void PointerHit(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
+    void RayHit_Selection(Hand hand, HitBall m_ControllBall_R, IFuncType type_in)
     {
         switch (type_in)
         {
